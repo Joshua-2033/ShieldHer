@@ -25,6 +25,7 @@ let sosActive = false;   // Track if SOS is currently active
 async function triggerSOS() {
     showPanel("progressSection");
     showPanel("spinner");
+    showPanel("statusPanel");
 
     // fake GPS
     const fakeLat = (10 + Math.random()).toFixed(6);
@@ -42,14 +43,15 @@ async function triggerSOS() {
 
     setTimeout(() => {
         activateStep("step4");
-        document.getElementById("cameraStatus").textContent = "RECORDING";
+        document.getElementById("valCamera").textContent = "RECORDING";
         showPanel("videoSection");
     }, 4000);
 
     setTimeout(() => {
         activateStep("step5");
-        document.getElementById("aiStatus").textContent = "HUMAN DETECTED";
+        document.getElementById("valAI").textContent = "HUMAN DETECTED";
         hidePanel("spinner");
+        showPanel("resetSection"); 
     }, 6000);
 }
 
