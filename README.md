@@ -1,135 +1,187 @@
-# ShieldHer – AI-Assisted Safety Drone Interface
+# ShieldHer v1.1
+## AI-Assisted Safety Drone — Mission Control Interface
 
-> **Seed-money demo** built for college project presentation.
-> A **simulation layer** for a real drone system (Jetson Orin Nano + YOLOv8).
+ShieldHer is a **local mission control interface** for a drone-based personal safety system.
 
----
-
-## What This Is
-
-ShieldHer is a mobile-first web application that simulates a drone-based personal safety system.
-
-When a user presses **SOS**:
-1. The browser captures their GPS coordinates.
-2. Coordinates are sent to a Flask backend.
-3. The backend simulates a drone activating, camera recording, and AI detecting a person.
-4. The frontend updates live with drone status, camera feed, and AI results.
-
-The simulation is **hardware-ready** — when you deploy this on Jetson Orin Nano, you only change one line.
+It is **not** drone firmware. It is the **operator-facing command layer** that:
+- Receives SOS + GPS from the operator's phone browser
+- Sends commands to the Jetson Orin Nano backend
+- Launches external drone and AI detection scripts
+- Displays live mission status
 
 ---
 
-## Project Structure
+## Architecture
 
 ```
 ShieldHer/
-├── backend_simulator/
-│   ├── app.py          ← Flask server + API routes
-│   ├── drone_state.py  ← In-memory drone variables
-│   └── templates/
-│       └── index.html  ← Mobile UI
 │
-├── static/
-│   ├── style.css       ← Dark tactical theme
-│   └── script.js       ← SOS logic, GPS, status polling
+├── shieldher/
+│   ├── config.py                   ← Runtime flags (HOST, PORT, MODE)
+│   │
+│   ├── server/
+│   │   └── app.py                  ← Flask API server
+│   │
+│   ├── core/
+│   │   ├── mission_controller.py   ← Command bridge to hardware
+│   │   └── drone_state.py          ← Shared runtime variables
+│   │
+│   └── ui/
+│       ├── templates/
+│       │   └── index.html          ← Operator mission control UI
+│       └── static/
+│           ├── style.css
+│           └── script.js
+│
+├── tests/
+│   └── manual_trigger.py           ← Developer state injection tool
 │
 └── README.md
 ```
 
 ---
 
+## API Endpoints
+
+| Method | Route                  | Purpose                                        |
+|--------|------------------------|------------------------------------------------|
+| GET    | `/`                    | Serve mission control UI                       |
+| POST   | `/api/mission/start`   | Receive SOS + GPS, activate mission            |
+| GET    | `/api/mission/state`   | Return live mission state (polled by UI)       |
+| POST   | `/api/mission/reset`   | Reset mission to standby                       |
+| POST   | `/api/mission/patch`   | Inject state updates (dev tool, gated by config) |
+
+---
+
 ## How to Run Locally
 
-### 1. Install Python dependencies
+### 1. Install dependencies
 
 ```bash
-pip install flask
+pip install flask requests
 ```
 
 ### 2. Start the server
 
 ```bash
-cd backend_simulator
-python app.py
+cd ShieldHer
+python3 -m shieldher.server.app
 ```
 
-### 3. Open in browser
+> Using `python3 -m` ensures all internal package imports (`shieldher.core`, `shieldher.config`) resolve correctly regardless of where you run from. Running `python app.py` directly from inside the folder will cause import errors.
+
+### 3. Open the interface
 
 ```
 http://127.0.0.1:5000
 ```
 
-For mobile testing on the same WiFi network, use your machine's local IP:
+On the same Wi-Fi network (phone testing):
 ```
-http://192.168.x.x:5000
+http://<your-machine-ip>:5000
 ```
+
+> **GPS on mobile:** Location capture is implemented but may not function on mobile devices over non-HTTPS local networks due to browser security policies. Use ngrok or laptop testing for full GPS demo. HTTPS support is planned for v1.2.
 
 ---
 
-## Simulation Mode — What Happens
+## Developer Testing (No Hardware)
 
-| Time after SOS | Event                |
-|---------------|----------------------|
-| T + 0s        | Drone initializing   |
-| T + 2s        | Drone activated      |
-| T + 5s        | Camera recording     |
-| T + 8s        | Human detected (AI)  |
+Use `manual_trigger.py` to inject state updates into a running server
+without a drone or AI script connected.
 
-All state lives in memory (`drone_state.py`). No database needed.
+```bash
+# Local testing (default — targets 127.0.0.1)
+cd ShieldHer
+python tests/manual_trigger.py
+
+# Optional — when targeting Jetson over Wi-Fi
+python tests/manual_trigger.py --host <jetson-ip>
+```
+
+The tool presents an interactive menu:
+- Set AI status (Initializing / Monitoring / Human Detected)
+- Activate drone / recording flags
+- Print current live server state
+- Reset all state
+
+> Requires `ENABLE_MANUAL_TRIGGER = True` in `shieldher/config.py`
+>
+> **This tool is disabled automatically when `ENABLE_MANUAL_TRIGGER = False`.
+> It is intended only for development and simulation — set it to `False` before any production deployment.**
+
+---
+
+## Known Limitations
+
+**GPS on mobile browsers**
+
+Location capture is implemented and the backend fully accepts coordinates. However, mobile browsers enforce a Secure Context requirement — the Geolocation API is silently blocked on plain `http://` pages. This is a browser security policy, not a ShieldHer bug.
+
+For the current version, GPS works reliably on laptop browsers at `http://127.0.0.1:5000`. Mobile GPS support via HTTPS (ngrok or self-signed certificate) is planned for v1.2.
 
 ---
 
 ## Jetson Orin Nano Deployment
 
-### Step 1 — Run the Flask server on Jetson
+### Step 1 — Update config.py
+
+```python
+HOST         = "0.0.0.0"   # already correct
+PORT         = 5000        # already correct
+MISSION_MODE = "JETSON"    # ← change this
+```
+
+### Step 2 — No frontend changes needed
+
+`script.js` uses `window.location.origin` — API calls automatically
+target whichever IP the browser used to load the page. Phone, laptop,
+or Jetson all work without touching any code.
+
+### Step 3 — Point mission_controller.py to real scripts
+
+In `shieldher/core/mission_controller.py`, update the subprocess paths:
+
+```python
+# _launch_drone_script():
+subprocess.Popen(["python3", "/opt/shieldher/drone_demo.py"])
+
+# _launch_ai_script():
+subprocess.Popen(["python3", "/opt/shieldher/ai_detect.py"])
+```
+
+### Step 4 — Run on Jetson
 
 ```bash
-python app.py
-# Server binds to 0.0.0.0:5000 automatically
+cd ShieldHer
+python3 -m shieldher.server.app
 ```
 
-### Step 2 — Update the frontend IP
-
-In `static/script.js`, change **one line**:
-
-```js
-// Before (local simulation):
-const DRONE_IP = "http://127.0.0.1:5000";
-
-// After (Jetson on local network):
-const DRONE_IP = "http://192.168.1.42:5000";  // ← Jetson's IP
-```
-
-### Step 3 — Replace simulation logic
-
-In `app.py`, replace `simulate_drone_sequence()` with real hardware calls:
-- Arm the drone via MAVLink / DroneKit
-- Start `cv2.VideoCapture(0)` for camera
-- Load and run your YOLOv8 model
-
-The `/video_feed` endpoint is already structured to serve MJPEG frames when ready.
+Phone connects to: `http://<jetson-ip>:5000`
 
 ---
 
-## API Reference
+## State Reference
 
-| Method | Route         | Description                        |
-|--------|---------------|------------------------------------|
-| GET    | `/`           | Serves the mobile UI               |
-| POST   | `/start_sos`  | Receives GPS, starts simulation    |
-| GET    | `/status`     | Returns current drone state JSON   |
-| GET    | `/video_feed` | Returns camera image / stream      |
-| POST   | `/reset`      | Resets drone to standby            |
+All variables live in `shieldher/core/drone_state.py`:
 
----
-
-## Tech Stack
-
-- **Backend**: Python 3 · Flask
-- **Frontend**: HTML · CSS · Vanilla JS
-- **Fonts**: Orbitron · Share Tech Mono · Rajdhani
-- **Target Hardware**: Jetson Orin Nano · YOLOv8
+| Variable          | Type    | Description                          |
+|-------------------|---------|--------------------------------------|
+| `drone_active`    | bool    | Drone system acknowledged and live   |
+| `recording_active`| bool    | Recording system confirmed active    |
+| `ai_status`       | str     | Current AI detection status string   |
+| `gps_location`    | dict    | `{lat, lon}` from operator browser   |
+| `battery_level`   | int     | Battery percentage                   |
 
 ---
 
-*ShieldHer v1.0 · Simulation Mode · Built for demo and seed funding presentation.*
+## Version History
+
+| Version | Notes                                              |
+|---------|----------------------------------------------------|
+| v1.0    | Initial simulation with timer-based state changes  |
+| v1.1    | Professional architecture, subprocess integration, structured API, manual trigger tool |
+
+---
+
+*ShieldHer v1.1 · Local Mission Control · Jetson Orin Nano Ready*

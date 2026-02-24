@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ShieldHer – AI Safety Drone</title>
+  <title>ShieldHer – Mission Control</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
 
-  <!-- Background grid effect -->
   <div class="grid-bg"></div>
   <div class="scan-line"></div>
 
@@ -22,10 +21,10 @@
         <div class="shield-icon">⬡</div>
         <h1 class="app-title">ShieldHer</h1>
       </div>
-      <p class="app-subtitle">AI-ASSISTED SAFETY DRONE INTERFACE</p>
+      <p class="app-subtitle">AI SAFETY DRONE — MISSION CONTROL</p>
       <div class="mode-badge">
         <span class="mode-dot"></span>
-        MODE: SIMULATION &nbsp;·&nbsp; JETSON COMPATIBLE
+        MODE: LOCAL MISSION CONTROL &nbsp;·&nbsp; JETSON READY
       </div>
     </header>
 
@@ -50,45 +49,45 @@
     <section id="progressSection" class="progress-section hidden">
       <div class="step" id="step1">
         <div class="step-icon">◎</div>
-        <span>Fetching GPS Location...</span>
+        <span>Acquiring Location</span>
       </div>
       <div class="step" id="step2">
         <div class="step-icon">◎</div>
-        <span>Sending Location to Server...</span>
+        <span>Dispatch Request Sent</span>
       </div>
       <div class="step" id="step3">
         <div class="step-icon">◎</div>
-        <span>Drone Activated</span>
+        <span>Drone System Active</span>
       </div>
       <div class="step" id="step4">
         <div class="step-icon">◎</div>
-        <span>Recording Started</span>
+        <span>Recording Confirmed</span>
       </div>
       <div class="step" id="step5">
         <div class="step-icon">◎</div>
-        <span>AI Detection Active</span>
+        <span>AI Monitoring Online</span>
       </div>
     </section>
 
     <!-- ── STATUS PANEL ── -->
     <section id="statusPanel" class="status-panel hidden">
-      <h2 class="panel-title">SYSTEM STATUS</h2>
+      <h2 class="panel-title">MISSION STATUS</h2>
       <div class="status-grid">
 
         <div class="status-card" id="cardDrone">
-          <div class="status-card-label">DRONE</div>
+          <div class="status-card-label">DRONE SYSTEM</div>
           <div class="status-card-value" id="valDrone">STANDBY</div>
           <div class="status-card-bar"><div class="bar-fill" id="barDrone"></div></div>
         </div>
 
-        <div class="status-card" id="cardCamera">
-          <div class="status-card-label">CAMERA</div>
-          <div class="status-card-value" id="valCamera">OFFLINE</div>
-          <div class="status-card-bar"><div class="bar-fill" id="barCamera"></div></div>
+        <div class="status-card" id="cardRecording">
+          <div class="status-card-label">RECORDING</div>
+          <div class="status-card-value" id="valRecording">OFFLINE</div>
+          <div class="status-card-bar"><div class="bar-fill" id="barRecording"></div></div>
         </div>
 
         <div class="status-card" id="cardAI">
-          <div class="status-card-label">AI ENGINE</div>
+          <div class="status-card-label">AI MONITOR</div>
           <div class="status-card-value" id="valAI">STANDBY</div>
           <div class="status-card-bar"><div class="bar-fill" id="barAI"></div></div>
         </div>
@@ -103,31 +102,19 @@
 
       <!-- GPS Display -->
       <div class="gps-display" id="gpsDisplay">
-        <div class="gps-label">⊕ GPS COORDINATES</div>
+        <div class="gps-label">⊕ OPERATOR GPS COORDINATES</div>
         <div class="gps-coords" id="gpsCoords">-- --</div>
       </div>
     </section>
 
-    <!-- ── VIDEO FEED ── -->
-    <section id="videoSection" class="video-section hidden">
-      <h2 class="panel-title">LIVE DRONE FEED</h2>
-      <div class="video-container">
-        <div class="video-overlay-tl">REC ●</div>
-        <div class="video-overlay-tr" id="vidTimestamp">00:00:00</div>
-        <img id="videoFeed" src="/video_feed" alt="Drone Camera Feed" class="drone-feed" />
-        <div class="video-overlay-br">YOLOv8 · ACTIVE</div>
-        <div class="video-scanline"></div>
-      </div>
-    </section>
-
-    <!-- ── RESET BUTTON ── -->
+    <!-- ── RESET ── -->
     <section id="resetSection" class="reset-section hidden">
-      <button class="reset-button" onclick="resetSystem()">⟳ RESET SYSTEM</button>
+      <button class="reset-button" onclick="resetMission()">⟳ RESET MISSION</button>
     </section>
 
     <!-- ── FOOTER ── -->
     <footer class="app-footer">
-      ShieldHer v1.0 · Simulation Mode · Jetson Orin Nano Ready
+      ShieldHer v1.1 · Local Mission Control · Jetson Orin Nano Ready
     </footer>
 
   </div>
