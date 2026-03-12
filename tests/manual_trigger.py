@@ -25,6 +25,7 @@
 
 import sys
 import argparse
+from typing import Optional
 
 try:
     import requests
@@ -64,7 +65,7 @@ def api_patch_state(base_url: str, payload: dict) -> bool:
         return False
 
 
-def api_get_state(base_url: str) -> dict | None:
+def api_get_state(base_url: str) -> Optional[dict]:
     """GET /api/mission/state — fetch live state from server."""
     try:
         res = requests.get(f"{base_url}/api/mission/state", timeout=3)
@@ -120,8 +121,8 @@ def print_state(base_url: str) -> None:
 
 def run_menu(base_url: str) -> None:
     print("\n╔══════════════════════════════════════╗")
-    print("║   ShieldHer — Manual Trigger Tool   ║")
-    print(f"║   Server : {base_url[:28].ljust(26)} ║")
+    print("║   ShieldHer — Manual Trigger Tool    ║")
+    print(f"║   Server : {base_url[:28].ljust(26)}║")
     print("╚══════════════════════════════════════╝\n")
 
     options = {

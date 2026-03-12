@@ -1,4 +1,4 @@
-# ShieldHer v1.1
+# ShieldHer v1.1.1
 ## AI-Assisted Safety Drone — Mission Control Interface
 
 ShieldHer is a **local mission control interface** for a drone-based personal safety system.
@@ -43,12 +43,12 @@ ShieldHer/
 
 ## API Endpoints
 
-| Method | Route                  | Purpose                                        |
-|--------|------------------------|------------------------------------------------|
-| GET    | `/`                    | Serve mission control UI                       |
-| POST   | `/api/mission/start`   | Receive SOS + GPS, activate mission            |
-| GET    | `/api/mission/state`   | Return live mission state (polled by UI)       |
-| POST   | `/api/mission/reset`   | Reset mission to standby                       |
+| Method | Route                  | Purpose                                          |
+|--------|------------------------|--------------------------------------------------|
+| GET    | `/`                    | Serve mission control UI                         |
+| POST   | `/api/mission/start`   | Receive SOS + GPS, activate mission              |
+| GET    | `/api/mission/state`   | Return live mission state (polled by UI)         |
+| POST   | `/api/mission/reset`   | Reset mission to standby                         |
 | POST   | `/api/mission/patch`   | Inject state updates (dev tool, gated by config) |
 
 ---
@@ -61,6 +61,8 @@ ShieldHer/
 pip install flask requests
 ```
 
+> `requests` is required by `tests/manual_trigger.py` to communicate with the running server over HTTP.
+
 ### 2. Start the server
 
 ```bash
@@ -68,7 +70,7 @@ cd ShieldHer
 python3 -m shieldher.server.app
 ```
 
-> Using `python3 -m` ensures all internal package imports (`shieldher.core`, `shieldher.config`) resolve correctly regardless of where you run from. Running `python app.py` directly from inside the folder will cause import errors.
+> Using `python3 -m` ensures all internal package imports (`shieldher.core`, `shieldher.config`) resolve correctly regardless of where you run from. Running `python3 app.py` directly from inside the folder will cause import errors.
 
 ### 3. Open the interface
 
@@ -93,10 +95,10 @@ without a drone or AI script connected.
 ```bash
 # Local testing (default — targets 127.0.0.1)
 cd ShieldHer
-python tests/manual_trigger.py
+python3 tests/manual_trigger.py
 
 # Optional — when targeting Jetson over Wi-Fi
-python tests/manual_trigger.py --host <jetson-ip>
+python3 tests/manual_trigger.py --host <jetson-ip>
 ```
 
 The tool presents an interactive menu:
@@ -128,8 +130,8 @@ For the current version, GPS works reliably on laptop browsers at `http://127.0.
 
 ```python
 HOST         = "0.0.0.0"   # already correct
-PORT         = 5000        # already correct
-MISSION_MODE = "JETSON"    # ← change this
+PORT         = 5000         # already correct
+MISSION_MODE = "JETSON"     # ← change this
 ```
 
 ### Step 2 — No frontend changes needed
@@ -165,23 +167,24 @@ Phone connects to: `http://<jetson-ip>:5000`
 
 All variables live in `shieldher/core/drone_state.py`:
 
-| Variable          | Type    | Description                          |
-|-------------------|---------|--------------------------------------|
-| `drone_active`    | bool    | Drone system acknowledged and live   |
-| `recording_active`| bool    | Recording system confirmed active    |
-| `ai_status`       | str     | Current AI detection status string   |
-| `gps_location`    | dict    | `{lat, lon}` from operator browser   |
-| `battery_level`   | int     | Battery percentage                   |
+| Variable           | Type | Description                        |
+|--------------------|------|------------------------------------|
+| `drone_active`     | bool | Drone system acknowledged and live |
+| `recording_active` | bool | Recording system confirmed active  |
+| `ai_status`        | str  | Current AI detection status string |
+| `gps_location`     | dict | `{lat, lon}` from operator browser |
+| `battery_level`    | int  | Battery percentage                 |
 
 ---
 
 ## Version History
 
-| Version | Notes                                              |
-|---------|----------------------------------------------------|
-| v1.0    | Initial simulation with timer-based state changes  |
-| v1.1    | Professional architecture, subprocess integration, structured API, manual trigger tool |
+| Version | Notes                                                                                    |
+|---------|------------------------------------------------------------------------------------------|
+| v1.0    | Initial simulation with timer-based state changes                                        |
+| v1.1    | Professional architecture, subprocess integration, structured API, manual trigger tool   |
+| v1.1.1  | Python 3.9 compatibility (`Optional` typing), `python3` throughout, `defer` on script tag, Jinja2 static URLs |
 
 ---
 
-*ShieldHer v1.1 · Local Mission Control · Jetson Orin Nano Ready*
+*ShieldHer v1.1.1 · Local Mission Control · Jetson Orin Nano Ready*

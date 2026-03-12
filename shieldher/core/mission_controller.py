@@ -15,6 +15,7 @@
 import subprocess
 import sys
 import os
+from typing import Optional
 
 # Add root to path so shieldher package resolves when run from any directory
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -22,7 +23,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from shieldher.core import drone_state
 
 
-def start_mission(lat: float | None, lon: float | None) -> None:
+def start_mission(lat: Optional[float], lon: Optional[float]) -> None:
     """
     Called when the operator presses SOS.
 
