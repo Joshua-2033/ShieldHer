@@ -43,6 +43,15 @@ def index():
 # Validates input, then hands off to mission_controller.
 @app.route("/api/mission/start", methods=["POST"])
 def mission_start():
+    # ── Mission lock ───────────────────────────────────────────────
+    # Prevents duplicate missions if /start is called while already active.
+    # Frontend guards this too, but backend must be the authoritative check.
+    if drone_state.drone_active:
+        return jsonify({
+            "status": "already_active",
+            "message": "Mission already in progress."
+        }), 409
+
     data = request.get_json(force=True, silent=True) or {}
 
     # Extract and validate GPS — gracefully handles null or missing values
@@ -127,4 +136,5 @@ if __name__ == "__main__":
     print(f"  Manual  : ENABLE_MANUAL_TRIGGER={config.ENABLE_MANUAL_TRIGGER}")
     print("=" * 52)
 
-    app.run(host=config.HOST, port=config.PORT, debug=True)
+    # debug=False prevents auto-restart which would reset in-memory drone state
+    app.run(host=config.HOST, port=config.PORT, debug=False)

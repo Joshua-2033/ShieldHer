@@ -93,17 +93,25 @@ function getGPS() {
 }
 
 // ── startPolling ────────────────────────────────────────────────────
-// Polls /api/mission/state and updates the UI on each response.
+// Recursive polling — schedules the next call only after the current one
+// completes. Prevents request accumulation if the tab is left open for
+// a long time, which matters on Jetson's limited network bandwidth.
+// Stops automatically when missionActive is false (after reset).
 function startPolling() {
-  pollTimer = setInterval(async () => {
-    try {
-      const res  = await fetch(`${API_BASE}/api/mission/state`);
-      const data = await res.json();
+  if (!missionActive) return;  // Stop recursion cleanly after reset
+
+  fetch(`${API_BASE}/api/mission/state`)
+    .then(res => res.json())
+    .then(data => {
       updateMissionPanel(data);
-    } catch (err) {
+      // Schedule next poll only after this one finishes
+      pollTimer = setTimeout(startPolling, POLL_INTERVAL);
+    })
+    .catch(err => {
       console.warn("[ShieldHer] State poll failed:", err);
-    }
-  }, POLL_INTERVAL);
+      // Retry even on error — network hiccup shouldn't kill the mission
+      pollTimer = setTimeout(startPolling, POLL_INTERVAL);
+    });
 }
 
 // ── updateMissionPanel ───────────────────────────────────────────────
@@ -161,9 +169,14 @@ function updateMissionPanel(data) {
   // ── GPS Coordinates ─────────────────────────────────────────────
   const gps = data.gps;
   if (gps && gps.lat !== null && gps.lon !== null) {
-    const lat = parseFloat(gps.lat).toFixed(6);
-    const lon = parseFloat(gps.lon).toFixed(6);
-    document.getElementById("gpsCoords").textContent = `${lat}°N  ${lon}°E`;
+    const rawLat = parseFloat(gps.lat);
+    const rawLon = parseFloat(gps.lon);
+    // Determine cardinal direction from sign, then display absolute value
+    const latDir = rawLat >= 0 ? "N" : "S";
+    const lonDir = rawLon >= 0 ? "E" : "W";
+    const lat = Math.abs(rawLat).toFixed(6);
+    const lon = Math.abs(rawLon).toFixed(6);
+    document.getElementById("gpsCoords").textContent = `${lat}°${latDir}  ${lon}°${lonDir}`;
   } else {
     document.getElementById("gpsCoords").textContent = "Signal unavailable";
   }
@@ -172,7 +185,7 @@ function updateMissionPanel(data) {
 // ── resetMission ────────────────────────────────────────────────────
 // Sends POST /api/mission/reset and restores the UI to initial state.
 async function resetMission() {
-  clearInterval(pollTimer);
+  clearTimeout(pollTimer);   // matches setTimeout used in recursive polling
   missionActive = false;
 
   try {

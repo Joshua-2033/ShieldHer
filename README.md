@@ -1,4 +1,4 @@
-# ShieldHer v1.1.1
+# ShieldHer v1.1.2
 ## AI-Assisted Safety Drone — Mission Control Interface
 
 ShieldHer is a **local mission control interface** for a drone-based personal safety system.
@@ -184,7 +184,8 @@ All variables live in `shieldher/core/drone_state.py`:
 | v1.0    | Initial simulation with timer-based state changes                                        |
 | v1.1    | Professional architecture, subprocess integration, structured API, manual trigger tool   |
 | v1.1.1  | Python 3.9 compatibility (`Optional` typing), `python3` throughout, `defer` on script tag, Jinja2 static URLs |
+| v1.1.2  | `debug=False` for stable state, backend mission lock (409), recursive polling, GPS cardinal direction fix |
 
 ---
 
-*ShieldHer v1.1.1 · Local Mission Control · Jetson Orin Nano Ready*
+*ShieldHer v1.1.2 · Local Mission Control · Jetson Orin Nano Ready*
