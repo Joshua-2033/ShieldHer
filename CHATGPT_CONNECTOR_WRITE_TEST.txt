@@ -1,2 +1,0 @@
-Temporary GitHub connector write test created on 2026-10-28.
-This file is only for verifying write access and may be deleted after the test.
